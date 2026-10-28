@@ -1,0 +1,16 @@
+# Generated MESA outputs are preserved in the research-snapshots release asset.
+**/build/
+**/make/
+**/LOGS*/
+**/photos*/
+**/png/
+**/SED/
+**/__pycache__/
+**/runs/
+*.pyc
+*.mod
+*.log
+**/star
+**/restart_photo
+**/target_resolved.json
+*.tar.gz

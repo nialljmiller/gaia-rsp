@@ -1,0 +1,91 @@
+! STAGE 2: restart the settled model and compute Gaia synthetic photometry.
+
+&star_job
+      show_log_description_at_start = .false.
+      create_RSP_model = .false.
+      load_saved_model = .true.
+      load_model_filename = 'settled.mod'
+      save_model_when_terminate = .true.
+      save_model_filename = 'colors_final.mod'
+      history_columns_file = 'history_columns_colors.list'
+      profile_columns_file = 'profile_columns.list'
+/
+
+&eos
+/
+
+&kap
+      Zbase = 0.0241d0
+      kap_file_prefix = 'a09'
+      kap_lowT_prefix = 'lowT_fa05_a09p'
+      kap_CO_prefix = 'a09_co'
+/
+
+&controls
+      max_model_number = 4000000
+      use_gold2_tolerances = .true.
+
+      RSP_mass = 8d0
+      RSP_Teff = 5400d0
+      RSP_L = 6535.3d0
+      RSP_X = 0.7d0
+      RSP_Z = 0.0241d0
+
+      x_integer_ctrl(1) = 2
+      x_integer_ctrl(5) = 10
+
+      ! Envelope construction. The builder integrates inward to RSP_T_anchor and
+      ! adjusts the outer zone mass until the anchor temperature is matched. At
+      ! L = 6530, Teff = 5400 the default tolerance could not be satisfied:
+      !   "failed to find outer dm to satisfy tolerance for T_anchor"
+      ! Loosening it costs nothing physically -- it only sets how precisely the
+      ! anchor zone is placed during setup, not the structure that is evolved.
+      RSP_T_anchor_tolerance = 1d-6
+      RSP_max_outer_dm_tries = 400
+
+      RSP_target_steps_per_cycle = 500
+      ! Managed by configure_target.py; placeholder, overwritten. See stage 1.
+      RSP_max_dt = 2555.568576d0
+
+      ! Must match stage 1 exactly, or the restart is physically inconsistent
+      ! with the model in settled.mod.
+      RSP_alfa = 0.9d0
+      RSP_alfam = 0.26d0
+
+      ! Convection set parameters, managed by configure_target.py.
+      ! Placeholders; overwritten. Do not delete these lines.
+      RSP_gammar = 0d0
+      RSP_alfap = 0d0
+      RSP_alfat = 0d0
+      RSP_kick_vsurf_km_per_sec = 0d0
+
+      history_interval = 1
+      photo_interval = 5000
+      profile_interval = 5000
+      terminal_interval = 500
+      terminal_show_age_units = 'days'
+      terminal_show_timestep_units = 'secs'
+      terminal_show_log_dt = .false.
+      terminal_show_log_age = .false.
+      trace_history_value_name(1) = 'rel_E_err'
+      trace_history_value_name(2) = 'log_rel_run_E_err'
+/
+
+&colors
+      use_colors = .true.
+      instrument = '/home/nill/MESA/mesa/data/colors_data/filters/GAIA/GAIA'
+      mag_system = 'Vega'
+      vega_sed = '/home/nill/MESA/mesa/data/colors_data/stellar_models/vega_flam.csv'
+      stellar_atm = '/home/nill/MESA/mesa/data/colors_data/stellar_models/Kurucz2003all'
+
+      ! Keep MESA output at 10 pc. Catalogue distance/extinction are nuisance
+      ! terms in the light-curve likelihood and do not require a new MESA run.
+      distance = 3.08567758149d+19
+
+      colors_results_directory = 'SED'
+      make_csv = .false.
+      sed_per_model = .false.
+/
+
+&pgstar
+/

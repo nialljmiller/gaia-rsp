@@ -1,0 +1,118 @@
+! STAGE 1: create and settle an RSP model without Colors.
+! Target is a long-period classical Cepheid, not an RR Lyrae; the filename is
+! kept only because rn and configure_target.py refer to it by name.
+! Values marked by configure_target.py are sourced from target.toml.
+!
+! Custom controls used by src/run_star_extras.f90:
+!   x_integer_ctrl(1) = stage (1=settle, 2=Colors)
+!   x_integer_ctrl(2) = minimum completed periods before settling checks
+!   x_integer_ctrl(3) = consecutive accepted settling checks required
+!   x_integer_ctrl(4) = maximum settling periods
+!   x_integer_ctrl(6) = zero-based LINA target mode
+!   x_ctrl(2) = abs(rsp_GREKM) tolerance
+!   x_ctrl(3) = minimum accepted LINA growth rate
+!   x_ctrl(4) = minimum rsp_DeltaR in Rsun
+!   x_ctrl(5) = minimum rsp_DeltaMag in mag
+!   x_ctrl(6) = relative amplitude-change tolerance
+!   x_ctrl(7) = max abs(cumulative_energy_error/total_energy) for acceptance
+
+&star_job
+      show_log_description_at_start = .false.
+      create_RSP_model = .true.
+      load_saved_model = .false.
+      save_model_when_terminate = .true.
+      save_model_filename = 'settled.mod'
+      history_columns_file = 'history_columns_settle.list'
+      profile_columns_file = 'profile_columns.list'
+      initial_zfracs = 6
+      set_initial_age = .true.
+      initial_age = 0
+      set_initial_model_number = .true.
+      initial_model_number = 0
+      set_initial_cumulative_energy_error = .true.
+      new_cumulative_energy_error = 0d0
+/
+
+&eos
+/
+
+&kap
+      Zbase = 0.0241d0
+      kap_file_prefix = 'a09'
+      kap_lowT_prefix = 'lowT_fa05_a09p'
+      kap_CO_prefix = 'a09_co'
+/
+
+&controls
+      max_model_number = 4000000
+      use_gold2_tolerances = .true.
+
+      RSP_mass = 8d0
+      RSP_Teff = 5400d0
+      RSP_L = 6560d0
+      RSP_X = 0.7d0
+      RSP_Z = 0.0241d0
+
+      x_integer_ctrl(1) = 1
+      x_integer_ctrl(2) = 80
+      x_integer_ctrl(3) = 8
+      x_integer_ctrl(4) = 2000
+      x_integer_ctrl(6) = 0
+
+      x_ctrl(2) = 0.001d0
+      x_ctrl(3) = 0d0
+      x_ctrl(4) = 0.05d0
+      x_ctrl(5) = 0.01d0
+      x_ctrl(6) = 0.02d0
+      x_ctrl(7) = 0.001d0
+
+      ! Envelope construction. The builder integrates inward to RSP_T_anchor and
+      ! adjusts the outer zone mass until the anchor temperature is matched. At
+      ! L = 6530, Teff = 5400 the default tolerance could not be satisfied:
+      !   "failed to find outer dm to satisfy tolerance for T_anchor"
+      ! Loosening it costs nothing physically -- it only sets how precisely the
+      ! anchor zone is placed during setup, not the structure that is evolved.
+      RSP_T_anchor_tolerance = 1d-6
+      RSP_max_outer_dm_tries = 400
+
+      RSP_target_steps_per_cycle = 600
+      ! Managed by configure_target.py from [run] fallback_max_dt_seconds and the
+      ! observed period; the value here is a placeholder and is overwritten.
+      ! RSP_max_dt overrides RSP_target_steps_per_cycle whenever it is smaller.
+      ! The old 600 s value was an RR Lyrae carry-over that forced ~14x the
+      ! requested number of steps at P = 15 d. Do not delete this line: the
+      ! configurator requires exactly one assignment of every key it manages.
+      RSP_max_dt = 2129.64048d0
+
+      ! Convection. RSP_alfam (eddy viscosity) sets the limit-cycle amplitude and
+      ! is the knob for matching the observed Gaia peak-to-peak amplitudes.
+      RSP_alfa = 1.2d0
+      RSP_alfam = 0.3d0
+
+      ! Convection set parameters, managed by configure_target.py.
+      ! Placeholders; overwritten. Do not delete these lines.
+      RSP_gammar = 0d0
+      RSP_alfap = 0d0
+      RSP_alfat = 0d0
+      RSP_kick_vsurf_km_per_sec = 20d0
+
+      history_interval = 10
+      photo_interval = 5000
+      profile_interval = 5000
+      terminal_interval = 500
+      terminal_show_age_units = 'days'
+      terminal_show_timestep_units = 'secs'
+      terminal_show_log_dt = .false.
+      terminal_show_log_age = .false.
+      trace_history_value_name(1) = 'rel_E_err'
+      trace_history_value_name(2) = 'log_rel_run_E_err'
+/
+
+&colors
+      use_colors = .false.
+      make_csv = .false.
+      sed_per_model = .false.
+/
+
+&pgstar
+/

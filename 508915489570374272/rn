@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${MESA_DIR:?MESA_DIR must be set}"
+MESA_DIR="$(cd "$MESA_DIR" && pwd -P)"
+export MESA_DIR
+
+helpers="${MESA_DIR}/star/test_suite/test_suite_helpers"
+if [[ ! -r "$helpers" ]]; then
+    echo "ERROR: invalid MESA_DIR=$MESA_DIR" >&2
+    exit 2
+fi
+
+source "$helpers"
+
+python configure_target.py --check-only
+python configure_target.py
+
+rm -f settled.mod colors_final.mod
+rm -f LINA_REJECTED SETTLING_REJECTED MODE_REJECTED ENERGY_REJECTED SETTLED_ACCEPTED
+rm -rf LOGS LOGS_settle LOGS_colors SED
+mkdir -p SED
+
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+echo "MESA_DIR: $MESA_DIR"
+
+echo "=== Stage 1: LINA screen and nonlinear RSP settling ==="
+
+cp inlist_rsp_RR_Lyrae inlist
+echo "run inlist_rsp_RR_Lyrae"
+
+if ! ./rn1; then
+    echo "ERROR: MESA failed during Stage 1" >&2
+    exit 1
+fi
+
+if [[ -d LOGS ]]; then
+    mv LOGS LOGS_settle
+fi
+
+if [[ -s LINA_REJECTED ]]; then
+    echo
+    echo "=== Stage 1 rejected by LINA ==="
+    sed 's/^/  /' LINA_REJECTED
+    rm -f settled.mod
+    exit 3
+fi
+
+if [[ -s SETTLING_REJECTED ]]; then
+    echo
+    echo "=== Stage 1 rejected during nonlinear settling ==="
+    sed 's/^/  /' SETTLING_REJECTED
+    rm -f settled.mod
+    exit 4
+fi
+
+if [[ -s MODE_REJECTED ]]; then
+    echo
+    echo "=== Stage 1 rejected: settled limit cycle is the wrong mode ==="
+    sed 's/^/  /' MODE_REJECTED
+    rm -f settled.mod
+    exit 6
+fi
+
+if [[ -s ENERGY_REJECTED ]]; then
+    echo
+    echo "=== Stage 1 rejected: energy conservation ==="
+    sed 's/^/  /' ENERGY_REJECTED
+    rm -f settled.mod
+    exit 7
+fi
+
+if [[ ! -s SETTLED_ACCEPTED ]]; then
+    echo "ERROR: Stage 1 ended without an acceptance/rejection marker" >&2
+    rm -f settled.mod
+    exit 5
+fi
+
+if [[ ! -s settled.mod ]]; then
+    echo "ERROR: Stage 1 accepted but settled.mod is missing" >&2
+    exit 5
+fi
+
+echo
+echo "=== Stage 1 accepted ==="
+sed 's/^/  /' SETTLED_ACCEPTED
+
+echo
+echo "=== Stage 2: restart settled.mod with Gaia Colors ==="
+do_one inlist_rsp_RR_Lyrae_colors colors_final.mod LOGS_colors
+
+if [[ ! -s colors_final.mod ]]; then
+    echo "ERROR: Stage 2 did not produce colors_final.mod" >&2
+    exit 1
+fi
+
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+echo "finished two-stage Gaia RSP Colors run"

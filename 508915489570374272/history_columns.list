@@ -1,0 +1,31 @@
+! Stage 2: phase-resolved Gaia photometry used by the fitter.
+include ''
+
+      model_number
+      star_age
+      star_age_day
+      log_dt_sec
+      log_L
+      log_Teff
+      log_g
+      photosphere_r
+      effective_T
+      star_mass
+      phase_of_evolution
+      rsp_phase
+      rsp_period_in_days
+      rsp_num_periods
+      rsp_DeltaMag
+      rsp_DeltaR
+      rsp_GREKM
+      rel_E_err
+      log_rel_run_E_err
+      max_abs_v_div_cs
+      v_surf_km_s
+
+      Mag_bol
+      Flux_bol
+      Interp_rad
+      Gbp
+      G
+      Grp

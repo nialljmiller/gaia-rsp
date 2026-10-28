@@ -1,0 +1,13 @@
+{
+  "primary": "windy-current",
+  "added_source_files": [],
+  "archived_directories": [
+    ".gaia_rsp_pre_v4_files_20260808_003704",
+    ".gaia_rsp_v4_payload",
+    "pre_v4_run_20260808_003704",
+    "build",
+    "fitter_backup_20260808_140529",
+    "makefile"
+  ],
+  "archive_sha256": "802804a45cd156d76485247c10f766b76c581c974e1b18a26f65c5b2b0cce00f"
+}

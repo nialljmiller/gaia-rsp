@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${MESA_DIR:?MESA_DIR must be set to the MESA installation you want to use}"
+
+MESA_DIR="$(cd "$MESA_DIR" && pwd -P)"
+export MESA_DIR
+
+mesa_work_makefile="${MESA_DIR}/star/work/Makefile"
+if [[ ! -r "$mesa_work_makefile" ]]; then
+    echo "ERROR: MESA_DIR does not point to a usable MESA installation:" >&2
+    echo "       MESA_DIR=$MESA_DIR" >&2
+    echo "       missing $mesa_work_makefile" >&2
+    exit 2
+fi
+
+if [[ ! -r Makefile ]]; then
+    echo "ERROR: local Makefile is missing from $(pwd)" >&2
+    exit 2
+fi
+
+jobs="${MESA_JOBS:-}"
+if [[ -z "$jobs" ]]; then
+    if command -v nproc >/dev/null 2>&1; then
+        jobs="$(nproc)"
+    else
+        jobs=1
+    fi
+fi
+
+echo "Building Gaia RSP work directory with:"
+echo "  MESA_DIR=$MESA_DIR"
+echo "  Makefile=$mesa_work_makefile"
+echo "  jobs=$jobs"
+
+make -f Makefile -j"$jobs"

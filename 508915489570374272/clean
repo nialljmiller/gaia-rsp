@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${MESA_DIR:?MESA_DIR must be set}"
+MESA_DIR="$(cd "$MESA_DIR" && pwd -P)"
+export MESA_DIR
+
+if [[ ! -r "${MESA_DIR}/star/work/Makefile" ]]; then
+    echo "ERROR: invalid MESA_DIR=$MESA_DIR" >&2
+    exit 2
+fi
+
+make -f Makefile clean
+rm -f LINA_REJECTED SETTLING_REJECTED SETTLED_ACCEPTED
