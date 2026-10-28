@@ -9,5 +9,9 @@
     "fitter_backup_20260808_140529",
     "makefile"
   ],
-  "archive_sha256": "802804a45cd156d76485247c10f766b76c581c974e1b18a26f65c5b2b0cce00f"
+  "archive_sha256": "802804a45cd156d76485247c10f766b76c581c974e1b18a26f65c5b2b0cce00f",
+  "archived_patch_helpers": [
+    "apply_gaia_rsp_v4_patch.py",
+    "APPLY.txt"
+  ]
 }

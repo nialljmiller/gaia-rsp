@@ -1,8 +1,0 @@
-Extract this archive directly inside the existing target work directory.
-It replaces only configure_target.py, mk, clean, Makefile and adds lowercase makefile.
-It does not overwrite target.toml or either stage inlist.
-
-Then run:
-    python configure_target.py
-    ./mk
-    ./rn
